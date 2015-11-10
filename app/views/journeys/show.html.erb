@@ -3,6 +3,7 @@
 <p>
   <strong>Name:</strong>
   <%= @journey.name %>
+  <%= link_to "Download Raw Data", :action => 'download_file' %>
 </p>
 
 <%= link_to 'Edit', edit_journey_path(@journey) %> |

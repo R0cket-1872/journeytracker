@@ -61,6 +61,15 @@ class JourneysController < ApplicationController
     end
   end
 
+  def download_file
+    @csv = Journey.find(params[:id])
+    send_file(@csv.data.file.path,
+          #:filename => @csv.data.file.name,
+          :type => @csv.data.file.content_type,
+          :disposition => 'attachment',
+          :url_based_filename => false)
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_journey
