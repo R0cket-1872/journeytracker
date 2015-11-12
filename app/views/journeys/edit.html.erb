@@ -1,6 +1,7 @@
-<h1>Editing Journey</h1>
+<h1 class="text-center">Editing Journey</h1>
 
 <%= render 'form' %>
+<hr>
 
-<%= link_to 'Show', @journey %> |
-<%= link_to 'Back', journeys_path %>
+<%= link_to 'Show', @journey, :class => "button" %> |
+<%= link_to 'Back to List', journeys_path, :class => "button alert" %>

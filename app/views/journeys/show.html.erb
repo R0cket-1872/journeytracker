@@ -1,10 +1,224 @@
-<p id="notice"><%= notice %></p>
+<% content_for :title do "Showing Journey Stats for #{@journey.name}| Journey Tracker" end %>
 
-<p>
-  <strong>Name:</strong>
-  <%= @journey.name %>
-  <%= link_to "Download Raw Data", :action => 'download_file' %>
-</p>
+<h1 class="text-center"><%= @journey.name %></h1>
 
-<%= link_to 'Edit', edit_journey_path(@journey) %> |
-<%= link_to 'Back', journeys_path %>
+<div class="center-button">
+<%= link_to "Download Raw Data", {:action => 'download_file'}, {:class => ("button")} %>
+<%= link_to "Back", root_path, :class => "button alert" %>
+</div>
+
+<table>
+  <tr>
+  <th colspan="5">Journey Statistics<th></tr>
+  <tr>
+    <th>Max Speed</th>
+    <th>Average Speed</th>
+    <th>Distance Travelled</th>
+    <th>Max Altitude</th>
+    <th>Average Altitude</th>
+  </tr>
+  <tr>
+    <td id="maxspeed" class="text-center"></td>
+    <td id="averagespeed" class="text-center"></td>
+    <td id="distancetravelled" class="text-center"></td>
+    <td id="maxalt" class="text-center"></td>
+    <td id="avgalt" class="text-center"></td>
+  </tr>
+</table>
+<hr/>
+<div class="small-12 large-6 columns">
+<h4 class="text-center">Visual Map of the Journey</h4>
+<div id="map"></div>
+
+</div>
+
+<div class="small-12 large-6 columns">
+<h4 class="text-center">Changes in speed throughout the journey</h4>
+<div id="chartContainer"></div>
+</div>
+
+<%= javascript_tag do %>
+
+// Functions for calculating distance
+// Uses Haversine function from http://www.movable-type.co.uk/scripts/latlong.html
+
+function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1);
+  var a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ;
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  var d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
+
+// Set d3 canvas
+
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = 540 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+var parseDate = d3.time.format("%d-%b-%y").parse;
+
+var x = d3.time.scale.utc()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom").ticks(10);
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.millis); })
+    .y(function(d) { return y(d.speed); });
+
+var svg = d3.select("#chartContainer").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// Global variables for later use
+
+window.long = [];
+window.lat  = [];
+window.time = [];
+window.result = [];
+
+// Read in data
+
+d3.csv("<%= @journey.data.url %>", function(error, data) {
+  if (error) throw error;
+
+  data.forEach(function(d) {
+    d.millis = new Date(+d.millis);
+    d.speed = +d.speed;
+    d.altitude = +d.altitude;
+    window.lat.push(+d.latitude);
+    window.long.push(+d.longitude);
+    window.time.push(+d.millis);
+
+  });
+
+  // This section calculates the statistics and appends them to the table
+
+  window.distance = 0;
+
+  for (i = 0; i < lat.length - 1; i++) {
+    distance += getDistanceFromLatLonInKm(lat[i],long[i],lat[i+1],long[i+1]);
+  };
+  console.log(distance);
+  document.getElementById("distancetravelled").innerHTML = distance.toFixed(2) + " km";
+
+  var max_speed = d3.max(data, function(d) { return d.speed; });
+  console.log(max_speed);
+  document.getElementById("maxspeed").innerHTML = max_speed + " km/h";
+
+
+  var max_alt = d3.max(data, function(d) { return d.altitude; });
+  console.log(max_alt);
+  document.getElementById("maxalt").innerHTML = max_alt + " ft";
+
+
+  var avg_alt = d3.sum(data, function(d){
+  return d.altitude;
+}) / data.length;
+console.log(avg_alt);
+document.getElementById("avgalt").innerHTML = avg_alt.toFixed(2) + " ft";
+
+
+  var total_time = ((time[time.length -1]/1000) - (time[0]/1000));
+  console.log(total_time);
+
+  avg_ms = ((distance * 1000) / total_time); // Speed in Metres per second
+  avg_kmh = (avg_ms * 18)/5; // Convert back to km/h
+  console.log(avg_kmh);
+  document.getElementById("averagespeed").innerHTML = avg_kmh.toFixed(2) + " km/h";
+
+
+  x.domain(d3.extent(data, function(d) { return d.millis; }));
+  y.domain(d3.extent(data, function(d) { return d.speed; }));
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Speed");
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", line);
+
+  svg.append("text")
+     .attr("x", (width / 2))
+     .attr("y", 0 - (margin.top / 2))
+     .attr("text-anchor", "middle")
+     .style("font-size", "12px")
+     .style("text-decoration", "underline")
+
+     // Mapbox
+
+     // Create array of lat/long points
+
+     for ( var i = 0; i < lat.length; i++ ) {
+       window.result.push( [lat[i], long[i] ] );
+       }
+
+       L.mapbox.accessToken = 'pk.eyJ1IjoicjBja2V0bWFuIiwiYSI6ImNpZ3YyanU1azAwNGR2MGtyc3ZtNGQ3dTkifQ.lowTVPNZRYgbRlMGV-Iqjg';
+       var map = L.mapbox.map('map', 'r0cketman.cigv2jtyj003mstly49l00k2k')
+           .setView([result[0][0],result[0][1]], 15);
+           console.log(window.result);
+
+       // Create array of lat,lon points.
+       var line_points = result;
+
+
+       // Define polyline options
+       // http://leafletjs.com/reference.html#polyline
+       var polyline_options = {
+           color: '#dab737',
+           weight: 10
+       };
+
+       // Defining a polygon here instead of a polyline will connect the
+       // endpoints and fill the path.
+       // http://leafletjs.com/reference.html#polygon
+       var polyline = L.polyline(line_points, polyline_options).addTo(map);
+
+       // Center journey via lat/long
+
+       map.fitBounds(polyline.getBounds());
+
+});
+
+
+
+
+<% end %>
+
+</body>

@@ -3,7 +3,9 @@ Rails.application.routes.draw do
   member do
     get 'download_file'
     end
-  end    
+  end
+
+  #match "/getcsv",:controller => "journeys", :action => "file_to_js", via: :get    
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

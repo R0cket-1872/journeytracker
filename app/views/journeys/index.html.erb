@@ -1,12 +1,27 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Listing Journeys</h1>
+<h1 class="text-center">Welcome to the Journey tracker!</h1>
+<h2 class="text-center">Instructions</h2>
+<p class="text-center">To use this application simply click the create journey button. Give your journey a name and
+  upload your CSV with the required data. Once done, the CSV will be processed and you can see
+  statistics about the journey.</p>
+
+<div class="center-button">
+<%= link_to 'Create Journey', new_journey_path, :class => "button text-center" %>
+</div>
+
+<h2 class="text-center">Journeys made so far</h2>
+
+  </select>
+<div class="mychart">
+</div>
 
 <table>
   <thead>
     <tr>
       <th>Name</th>
-      <th colspan="3"></th>
+      <th>Journey Created</th>
+      <th colspan="3">Actions</th>
     </tr>
   </thead>
 
@@ -14,14 +29,11 @@
     <% @journeys.each do |journey| %>
       <tr>
         <td><%= journey.name %></td>
-        <td><%= link_to 'Show', journey %></td>
+        <td><%= journey.created_at.strftime("%B %d %Y %H:%M") %></td>
+        <td><%= link_to 'View', journey %></td>
         <td><%= link_to 'Edit', edit_journey_path(journey) %></td>
-        <td><%= link_to 'Destroy', journey, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%= link_to 'Delete', journey, method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
     <% end %>
   </tbody>
 </table>
-
-<br>
-
-<%= link_to 'New Journey', new_journey_path %>

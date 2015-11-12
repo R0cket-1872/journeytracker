@@ -12,6 +12,9 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require foundation
 //= require d3
-//= require turbolinks
+//= require mapbox.js
 //= require_tree .
+
+$(function(){ $(document).foundation(); });
