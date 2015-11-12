@@ -1,28 +1,21 @@
 == README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This was built using Rails 4.2.4 and Ruby 2.2.3 on Xubuntu 15.10.
 
-Things you may want to cover:
+I apologise for the large amount of inline JS used for D3 and Mapbox,
+Rails for some reason would not read the CSV from the asset pipeline correctly.
+I'm not sure why - I suspect it was a routing error.
 
-* Ruby version
+As the amount of Rails code was mostly scaffold, I did not write tests.
 
-* System dependencies
+The application works by the user creating a journey and uploading a CSV which
+is stored in the public folder.
 
-* Configuration
+The file is then processed using D3's CSV read library which is used to provide the data
+for the rest of the show view for journeys.
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
-
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+Libraries used:
+Foundation - Basic layout
+Carrierwave - File Upload
+d3-rails - Adding D3 to the asset pipeline
+Mapbox.js - Added Mapbox JS to the asset pipeline.
